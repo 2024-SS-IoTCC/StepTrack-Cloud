@@ -5,7 +5,6 @@ import (
     "encoding/json"
     "log"
     "net/http"
-    "strconv"
     "github.com/gorilla/mux"
     _ "github.com/go-sql-driver/mysql"
 )
@@ -24,7 +23,7 @@ var err error
 // Home handler
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte("Welcome to the Home Page!"))
+    w.Write([]byte("StepTrack-Cloud API is running!"))
 }
 
 // Items handler
@@ -90,7 +89,7 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     var steps []StepData
     for rows.Next() {
         var step StepData
-        err := rows.Scan(&step.ID, &step.Username, &step.Steps, &step.Start, &step.End)
+        err := rows.Scan(&step.Username, &step.Steps, &step.Start, &step.End)
         if err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
@@ -101,7 +100,6 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(steps)
 }
-
 
 // Main function
 func main() {
