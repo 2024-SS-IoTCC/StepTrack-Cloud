@@ -13,8 +13,8 @@ import (
 type StepData struct {
     Username string `json:"username"`
     Steps    int    `json:"steps"`
-    Start    int    `json:"start"`
-    End      int    `json:"end"`
+    Start    string `json:"start"`
+    End      string `json:"end"`
 }
 
 var db *sql.DB
@@ -23,7 +23,7 @@ var err error
 // Home handler
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte("StepTrack-Cloud API ready."))
+    w.Write([]byte("StepTrack-Cloud API running."))
 }
 
 // AddSteps handler
@@ -54,7 +54,7 @@ func AddStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 // Main function
 func main() {
-    dsn := "iotcc:ZGrRTTbyKZpZeEuTUM3R@tcp(127.0.0.1:3306)/step_data_db"
+    dsn := "iotcc:ZGrRTTbyKZpZeEuTUM3R@tcp(127.0.0.1:3306)/step_data"
     db, err = sql.Open("mysql", dsn)
     if err != nil {
         log.Fatal(err)
