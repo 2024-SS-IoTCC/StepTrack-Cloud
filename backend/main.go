@@ -7,6 +7,8 @@ import (
     "net/http"
     "github.com/gorilla/mux"
     _ "github.com/go-sql-driver/mysql"
+    httpSwagger "github.com/swaggo/http-swagger"
+    _ "github.com/2024-SS-IoTCC/StepTrack-Cloud/docs"
 )
 
 // StepData structure
@@ -21,18 +23,31 @@ var db *sql.DB
 var err error
 
 // Home handler
+// @Summary Show the status of the server
+// @Description Get the status of the server
+// @Tags status
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]string
+// @Router / [get]
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte("StepTrack-Cloud API is running!"))
-}
-
-// Items handler
-func ItemsHandler(w http.ResponseWriter, r *http.Request) {
+    jsonResponse := map[string]string{"status": "running"}
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode("Items endpoint not yet implemented")
+    json.NewEncoder(w).Encode(jsonResponse)
 }
 
 // Add steps handler
+// @Summary Add steps data
+// @Description Add steps data to the database
+// @Tags steps
+// @Accept  json
+// @Produce  json
+// @Param step body StepData true "Step Data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /steps [post]
 func AddStepsHandler(w http.ResponseWriter, r *http.Request) {
     var stepData StepData
     err := json.NewDecoder(r.Body).Decode(&stepData)
@@ -60,26 +75,40 @@ func AddStepsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetSteps handler
+// @Summary Get steps data
+// @Description Get steps data from the database
+// @Tags steps
+// @Accept  json
+// @Produce  json
+// @Param username query string false "Username"
+// @Param start query string false "Start Time"
+// @Param end query string false "End Time"
+// @Success 200 {array} StepData
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /steps [get]
 func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
-    // Parse query parameters
     queryParams := r.URL.Query()
     username := queryParams.Get("username")
     start := queryParams.Get("start")
     end := queryParams.Get("end")
 
-    query := "SELECT id, username, steps, start, end FROM steps WHERE 1=1"
+    query := "SELECT username, steps, start, end FROM steps WHERE 1=1"
+    var args []interface{}
 
     if username != "" {
-        query += " AND username = '" + username + "'"
+        query += " AND username = ?"
+        args = append(args, username)
     }
     if start != "" {
-        query += " AND start >= '" + start + "'"
+        query += " AND start >= ?"
+        args = append(args, start)
     }
     if end != "" {
-        query += " AND end <= '" + end + "'"
+        query += " AND end <= ?"
+        args = append(args, end)
     }
 
-    rows, err := db.Query(query)
+    rows, err := db.Query(query, args...)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -97,11 +126,20 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
         steps = append(steps, step)
     }
 
+    if len(steps) == 0 {
+        steps = []StepData{}
+    }
+
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(steps)
 }
 
 // Main function
+// @title Step Data API
+// @version 1.0
+// @description This is a sample server for managing step data.
+// @host localhost:8080
+// @BasePath /
 func main() {
     dsn := "iotcc:PPNfnJiya2cZVwWEXmAH@tcp(127.0.0.1:3306)/step_data"
     db, err = sql.Open("mysql", dsn)
@@ -121,6 +159,9 @@ func main() {
     r.HandleFunc("/", HomeHandler).Methods("GET")
     r.HandleFunc("/steps", AddStepsHandler).Methods("POST")
     r.HandleFunc("/steps", GetStepsHandler).Methods("GET")
+
+    // Swagger documentation
+    r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
     http.Handle("/", r)
     log.Println("Server started at :8080")

@@ -1,0 +1,103 @@
+basePath: /
+definitions:
+  main.StepData:
+    properties:
+      end:
+        type: string
+      start:
+        type: string
+      steps:
+        type: integer
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server for managing step data.
+  title: Step Data API
+  version: "1.0"
+paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Get the status of the server
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Show the status of the server
+      tags:
+      - status
+  /steps:
+    get:
+      consumes:
+      - application/json
+      description: Get steps data from the database
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        type: string
+      - description: Start Time
+        in: query
+        name: start
+        type: string
+      - description: End Time
+        in: query
+        name: end
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.StepData'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get steps data
+      tags:
+      - steps
+    post:
+      consumes:
+      - application/json
+      description: Add steps data to the database
+      parameters:
+      - description: Step Data
+        in: body
+        name: step
+        required: true
+        schema:
+          $ref: '#/definitions/main.StepData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Add steps data
+      tags:
+      - steps
+swagger: "2.0"
