@@ -1,6 +1,7 @@
 package main
 
 import (
+    // "github.com/davecgh/go-spew/spew"
     "database/sql"
     "encoding/json"
     "log"
@@ -14,6 +15,15 @@ import (
 
 // StepData structure
 type StepData struct {
+    Username string `json:"username"`
+    Steps    int    `json:"steps"`
+    Start    string `json:"start"`
+    End      string `json:"end"`
+}
+
+// GetStepData structure
+type GetStepData struct {
+    ID       int    `json:"id"`
     Username string `json:"username"`
     Steps    int    `json:"steps"`
     Start    string `json:"start"`
@@ -84,7 +94,7 @@ func AddStepsHandler(w http.ResponseWriter, r *http.Request) {
 // @Param username query string false "Username"
 // @Param start query string false "Start Time"
 // @Param end query string false "End Time"
-// @Success 200 {array} StepData
+// @Success 200 {array} GetStepData
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /steps [get]
 func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
@@ -119,10 +129,10 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var steps []StepData
+    var steps []GetStepData
     for rows.Next() {
-        var step StepData
-        err := rows.Scan(&step.Username, &step.Steps, &step.Start, &step.End)
+        var step GetStepData
+        err := rows.Scan(&step.ID, &step.Username, &step.Steps, &step.Start, &step.End)
         if err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
@@ -131,7 +141,7 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     if len(steps) == 0 {
-        steps = []StepData{}
+        steps = []GetStepData{}
     }
 
     w.Header().Set("Content-Type", "application/json")
