@@ -164,10 +164,9 @@ func main() {
     // Swagger documentation
     r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
-    corsObj:=handlers.AllowedOrigins([]string{"*"})
-    log.Fatal(http.ListenAndServe(":3000", handlers.CORS(corsObj)(r)))
+    corsObj := handlers.AllowedOrigins([]string{"*"})
 
     http.Handle("/", r)
     log.Println("Server started at :8080")
-    http.ListenAndServe(":8080", nil)
+    http.ListenAndServe(":8080", handlers.CORS(corsObj)(r))
 }
