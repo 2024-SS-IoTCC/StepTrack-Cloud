@@ -4,6 +4,7 @@ import (
     // "github.com/davecgh/go-spew/spew"
     "database/sql"
     "encoding/json"
+    "net/url"
     "log"
     "net/http"
     "github.com/gorilla/handlers"
@@ -92,9 +93,10 @@ func AddStepsHandler(w http.ResponseWriter, r *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Param username query string false "Username"
-// @Param start query string false "Start Time"
-// @Param end query string false "End Time"
-// @Success 200 {array} GetStepData
+// @Param start query string false "URI encoded Start Time"
+// @Param end query string false "URI encoded End Time"
+// @Success 200 {array} interface{} "Array of StepData or aggregated data"
+// @Failure 400 {string} string "Bad Request"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /steps [get]
 func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
@@ -103,24 +105,38 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     start := queryParams.Get("start")
     end := queryParams.Get("end")
 
-    query := "SELECT id, username, steps, start, end FROM steps WHERE 1=1"
+    var query string
     var args []interface{}
 
-    if username != "" {
-        query += " AND username = ?"
-        args = append(args, username)
+    // Check if any query parameter is provided
+    if username != "" || start != "" || end != "" {
+        query = "SELECT username, SUM(steps) as steps FROM steps WHERE 1=1"
+        if username != "" {
+            query += " AND username = ?"
+            args = append(args, username)
+        }
+        if start != "" {
+            startDecoded, err := url.QueryUnescape(start)
+            if err != nil {
+                http.Error(w, "Failed to decode 'start' parameter", http.StatusBadRequest)
+                return
+            }
+            query += " AND start >= ?"
+            args = append(args, startDecoded)
+        }
+        if end != "" {
+            endDecoded, err := url.QueryUnescape(end)
+            if err != nil {
+                http.Error(w, "Failed to decode 'end' parameter", http.StatusBadRequest)
+                return
+            }
+            query += " AND end <= ?"
+            args = append(args, endDecoded)
+        }
+        query += " GROUP BY username ORDER BY steps DESC"
+    } else {
+        query = "SELECT id, username, steps, start, end FROM steps ORDER BY id DESC"
     }
-    if start != "" {
-        query += " AND start >= ?"
-        args = append(args, start)
-    }
-    if end != "" {
-        query += " AND end <= ?"
-        args = append(args, end)
-    }
-
-    // Sort descending
-    query += " ORDER BY id DESC"
 
     rows, err := db.Query(query, args...)
     if err != nil {
@@ -129,23 +145,48 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var steps []GetStepData
-    for rows.Next() {
-        var step GetStepData
-        err := rows.Scan(&step.ID, &step.Username, &step.Steps, &step.Start, &step.End)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
+    if username != "" || start != "" || end != "" {
+        var aggregatedSteps []struct {
+            Username string `json:"username"`
+            Steps    int    `json:"steps"`
         }
-        steps = append(steps, step)
+        for rows.Next() {
+            var agg struct {
+                Username string `json:"username"`
+                Steps    int    `json:"steps"`
+            }
+            err := rows.Scan(&agg.Username, &agg.Steps)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            aggregatedSteps = append(aggregatedSteps, agg)
+        }
+        if len(aggregatedSteps) == 0 {
+            aggregatedSteps = []struct {
+                Username string `json:"username"`
+                Steps    int    `json:"steps"`
+            }{}
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(aggregatedSteps)
+    } else {
+        var steps []GetStepData
+        for rows.Next() {
+            var step GetStepData
+            err := rows.Scan(&step.ID, &step.Username, &step.Steps, &step.Start, &step.End)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
+            steps = append(steps, step)
+        }
+        if len(steps) == 0 {
+            steps = []GetStepData{}
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(steps)
     }
-
-    if len(steps) == 0 {
-        steps = []GetStepData{}
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(steps)
 }
 
 // Main function
