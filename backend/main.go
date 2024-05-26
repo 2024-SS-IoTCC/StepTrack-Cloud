@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "log"
     "net/http"
+    "github.com/gorilla/handlers"
     "github.com/gorilla/mux"
     _ "github.com/go-sql-driver/mysql"
     httpSwagger "github.com/swaggo/http-swagger"
@@ -162,6 +163,9 @@ func main() {
 
     // Swagger documentation
     r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
+    corsObj:=handlers.AllowedOrigins([]string{"*"})
+    log.Fatal(http.ListenAndServe(":3000", handlers.CORS(corsObj)(r)))
 
     http.Handle("/", r)
     log.Println("Server started at :8080")
