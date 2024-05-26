@@ -93,7 +93,7 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     start := queryParams.Get("start")
     end := queryParams.Get("end")
 
-    query := "SELECT username, steps, start, end FROM steps WHERE 1=1"
+    query := "SELECT id, username, steps, start, end FROM steps WHERE 1=1"
     var args []interface{}
 
     if username != "" {
@@ -108,6 +108,9 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
         query += " AND end <= ?"
         args = append(args, end)
     }
+
+    // Sort descending
+    query += " ORDER BY id DESC"
 
     rows, err := db.Query(query, args...)
     if err != nil {
