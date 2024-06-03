@@ -97,6 +97,7 @@
   }
 
   .chart-container {
+    min-width: 400px;
     margin-top: -20px;
   }
 
@@ -104,10 +105,15 @@
     .active-filter {
       color: #0d6efd;
       font-weight: bold;
+      user-select: none;
       
       a {
+        position: absolute;
+        display: inline-block;
+        margin-left: 5px;
         text-decoration: none;
         border: 0;
+        user-select: none;
       }
     }
   }
@@ -150,6 +156,21 @@ export default {
           }
         },
         responsive: true,
+        maintainAspectRatio: true,
+        onClick: (evt) => {
+          const chartInstance = evt.chart;
+          const points = evt.chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+          if (points.length) {
+            const firstPoint = points[0];
+            const label = chartInstance.data.labels[firstPoint.index];
+            if (label && label.length > 3) {
+              const username = label.substring(label.indexOf(' ') + 1);
+              if (username && username.length) {
+                this.showDataByUsername(username);
+              }
+            }
+          }
+        },
         plugins: {
           legend: {
             position: 'right',
@@ -236,8 +257,8 @@ export default {
     },
     changeView(newView) {
       this.view = newView;
-      // If the new view is not the Logging-View, reset the userFilter
-      if (newView !== 'log' && this.userFilter !== '') this.userFilter = '';
+      // Reset the userFilter value
+      this.userFilter = '';
       this.fetchData();
     },
     showDataByUsername(username) {
