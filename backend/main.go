@@ -109,12 +109,8 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     var args []interface{}
 
     // Check if any query parameter is provided
-    if username != "" || start != "" || end != "" {
+    if start != "" || end != "" {
         query = "SELECT username, SUM(steps) as steps FROM steps WHERE 1=1"
-        if username != "" {
-            query += " AND username = ?"
-            args = append(args, username)
-        }
         if start != "" {
             startDecoded, err := url.QueryUnescape(start)
             if err != nil {
@@ -135,7 +131,17 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
         }
         query += " GROUP BY username ORDER BY steps DESC"
     } else {
-        query = "SELECT id, username, steps, start, end FROM steps ORDER BY id DESC"
+        query = "SELECT id, username, steps, start, end FROM steps WHERE 1=1 "
+        if username != "" {
+            userDecoded, err := url.QueryUnescape(username)
+            if err != nil {
+                http.Error(w, "Failed to decode 'username' parameter", http.StatusBadRequest)
+                return
+            }
+            query += " AND username = ?"
+            args = append(args, userDecoded)
+        }
+        query += " ORDER BY id DESC"
     }
 
     rows, err := db.Query(query, args...)
@@ -145,7 +151,7 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    if username != "" || start != "" || end != "" {
+    if start != "" || end != "" {
         var aggregatedSteps []struct {
             Username string `json:"username"`
             Steps    int    `json:"steps"`
