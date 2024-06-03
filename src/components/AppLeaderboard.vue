@@ -32,32 +32,86 @@
             </div>
 
             <!-- Log-Table (all entries) -->
-            <table v-if="view === 'log'" class="table">
-              <thead>
-                <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">Username</th>
-                  <th scope="col">Steps</th>
-                  <th scope="col">Start</th>
-                  <th scope="col">End</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="step in stepsData" :key="step.id">
-                  <td scope="row">{{ step.id }}</td>
-                  <td>{{ step.username }}</td>
-                  <td>{{ step.steps }}</td>
-                  <td>{{ step.start }}</td>
-                  <td>{{ step.end }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div v-if="view === 'log'">
+              <!-- Show User-Filter, if active -->
+              <div v-if="userFilter !== ''" class="table-filter-container">
+                Filter: <span class="active-filter">
+                  {{ userFilter }} <a href="#" class="badge bg-danger" @click="showDataByUsername('')">clear</a>
+                </span>
+              </div>
+              <!-- Log-Data-Table -->
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Steps</th>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="step in stepsData" :key="step.id">
+                    <td scope="row">
+                      {{ step.id }}
+                    </td>
+                    <td>
+                      <a v-if="step.username && step.username !== ''" href="#"
+                        @click="showDataByUsername(step.username)">{{ step.username }}</a>
+                      <span v-else>ANON</span>
+                    </td>
+                    <td>{{ step.steps }}</td>
+                    <td>{{ step.start }}</td>
+                    <td>{{ step.end }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped lang="scss">
+  .leaderboard-container {
+    padding: 15px 8px 10px 8px;
+    text-align: left;
+  }
+
+  .view-content {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .leaderboard-box {
+    text-align: left;
+  }
+
+  .empty-container {
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .chart-container {
+    margin-top: -20px;
+  }
+
+  .table-filter-container {
+    .active-filter {
+      color: #0d6efd;
+      font-weight: bold;
+      
+      a {
+        text-decoration: none;
+        border: 0;
+      }
+    }
+  }
+</style>
 
 <script>
 import axios from 'axios';
@@ -83,6 +137,7 @@ export default {
     return {
       stepsData: [],
       view: 'today',
+      userFilter: '',
       hasData: false,
       barChartData: {},
       barChartOptions: {
@@ -143,6 +198,9 @@ export default {
         }
         // Concat date filter values
         queryParams += '?end=' + endQuery + ((startQuery !== '') ? ('&start=' + startQuery) : '');
+      } else if (this.userFilter && this.userFilter !== '') {
+        // If the userFilter in the logging is set, only get data from one user
+        queryParams += '?username=' + encodeURI(this.userFilter);
       }
 
       try {
@@ -177,8 +235,14 @@ export default {
       }
     },
     changeView(newView) {
-      // if (this.view !== newView) {}
       this.view = newView;
+      // If the new view is not the Logging-View, reset the userFilter
+      if (newView !== 'log' && this.userFilter !== '') this.userFilter = '';
+      this.fetchData();
+    },
+    showDataByUsername(username) {
+      this.view = 'log';
+      this.userFilter = username;
       this.fetchData();
     },
     getDateTimeFormat(date) {
@@ -190,29 +254,3 @@ export default {
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
-  .leaderboard-container {
-    padding: 15px 8px 10px 8px;
-    text-align: left;
-  }
-
-  .view-content {
-    margin-top: 20px;
-    text-align: center;
-  }
-
-  .leaderboard-box {
-    text-align: left;
-  }
-
-  .empty-container {
-    text-align: center;
-    font-size: 16px;
-  }
-
-  .chart-container {
-    margin-top: -20px;
-  }
-</style>
