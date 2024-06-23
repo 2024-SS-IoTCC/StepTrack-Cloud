@@ -11,7 +11,7 @@ definitions:
       username:
         type: string
     type: object
-host: http://174.138.68.148
+host: 174.138.68.148
 info:
   contact: {}
   description: 'This is an API for managing step data, see: https://github.com/2024-SS-IoTCC/StepTrack-App'
@@ -104,4 +104,6 @@ paths:
       summary: Add steps data
       tags:
       - steps
+schemes:
+- http
 swagger: "2.0"

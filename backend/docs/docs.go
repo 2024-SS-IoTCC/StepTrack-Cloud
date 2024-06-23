@@ -171,9 +171,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "http://174.138.68.148",
+	Host:             "174.138.68.148",
 	BasePath:         "/api",
-	Schemes:          []string{},
+	Schemes:          []string{"http"},
 	Title:            "StepTrack-Cloud API",
 	Description:      "This is an API for managing step data, see: https://github.com/2024-SS-IoTCC/StepTrack-App",
 	InfoInstanceName: "swagger",

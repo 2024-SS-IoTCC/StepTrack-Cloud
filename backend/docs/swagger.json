@@ -1,4 +1,7 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "This is an API for managing step data, see: https://github.com/2024-SS-IoTCC/StepTrack-App",
@@ -6,7 +9,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "http://174.138.68.148",
+    "host": "174.138.68.148",
     "basePath": "/api",
     "paths": {
         "/": {
