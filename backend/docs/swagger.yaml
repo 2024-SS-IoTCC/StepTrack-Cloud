@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api
 definitions:
   main.StepData:
     properties:
@@ -11,11 +11,11 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8080
+host: http://174.138.68.148
 info:
   contact: {}
-  description: This is a sample server for managing step data.
-  title: Step Data API
+  description: 'This is an API for managing step data, see: https://github.com/2024-SS-IoTCC/StepTrack-App'
+  title: StepTrack-Cloud API
   version: "1.0"
 paths:
   /:
@@ -45,11 +45,11 @@ paths:
         in: query
         name: username
         type: string
-      - description: Start Time
+      - description: URI encoded Start Time
         in: query
         name: start
         type: string
-      - description: End Time
+      - description: URI encoded End Time
         in: query
         name: end
         type: string
@@ -57,11 +57,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Array of StepData or aggregated data
           schema:
             items:
-              $ref: '#/definitions/main.StepData'
+              type: object
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:

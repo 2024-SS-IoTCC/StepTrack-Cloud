@@ -63,25 +63,31 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Start Time",
+                        "description": "URI encoded Start Time",
                         "name": "start",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "End Time",
+                        "description": "URI encoded End Time",
                         "name": "end",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Array of StepData or aggregated data",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.StepData"
+                                "type": "object"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
@@ -165,11 +171,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/",
+	Host:             "http://174.138.68.148",
+	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "Step Data API",
-	Description:      "This is a sample server for managing step data.",
+	Title:            "StepTrack-Cloud API",
+	Description:      "This is an API for managing step data, see: https://github.com/2024-SS-IoTCC/StepTrack-App",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

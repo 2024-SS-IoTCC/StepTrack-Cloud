@@ -196,11 +196,11 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Main function
-// @title Step Data API
-// @version 1.0
-// @description This is a sample server for managing step data.
-// @host localhost:8080
-// @BasePath /
+// @title           StepTrack-Cloud API
+// @version         1.0
+// @description     This is an API for managing step data, see: https://github.com/2024-SS-IoTCC/StepTrack-App
+// @host            http://174.138.68.148
+// @BasePath        /api
 func main() {
     dsn := "iotcc:PPNfnJiya2cZVwWEXmAH@tcp(127.0.0.1:3306)/step_data"
     db, err = sql.Open("mysql", dsn)
